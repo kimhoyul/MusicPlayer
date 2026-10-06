@@ -1,9 +1,10 @@
 /* App shell only. Imported music remains in IndexedDB and is never uploaded. */
 'use strict';
-const VERSION = '1.1.0';
+const VERSION = '1.2.0';
 const CACHE = 'offline-music-shell:' + VERSION;
 const SCOPE = self.registration.scope;
-const FILES = ['index.html', 'styles.css', 'app.js', 'manifest.webmanifest', 'icon.svg', 'icon-180.png'];
+const FILES = ['index.html', 'styles.css', 'app.js', 'manifest.webmanifest', 'icon.svg',
+  'hoyul-music-icon-180-v2.png', 'hoyul-music-icon-192-v2.png', 'hoyul-music-icon-512-v2.png'];
 const URLS = FILES.map(path => new URL(path, SCOPE).href);
 const HOME = new URL('index.html', SCOPE).href;
 

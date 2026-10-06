@@ -1,3 +1,4 @@
+[hidden] { display: none !important; }
 :root {
   --bg: #0f0c16;
   --bg-deep: #09070e;
@@ -110,6 +111,23 @@ button.danger { color: var(--danger); }
   margin: 2px 0 0;
   font-size: 23px;
   letter-spacing: -.025em;
+}
+.brand-wrap {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+.brand-title {
+  margin: 0;
+  padding-top: 2px;
+  font-family: "Snell Roundhand", "Apple Chancery", "Brush Script MT", cursive;
+  font-size: 34px;
+  line-height: 1;
+  font-weight: 400;
+  letter-spacing: .01em;
+  white-space: nowrap;
+  color: #f4eaff;
+  text-shadow: 0 4px 18px rgba(205,164,255,.26);
 }
 .eyebrow {
   margin: 0;

@@ -1,6 +1,6 @@
 {
-  "name": "오프라인 뮤직 플레이어",
-  "short_name": "뮤직",
+  "name": "Hoyul Music",
+  "short_name": "Hoyul Music",
   "description": "아이폰 파일 앱의 음악을 기기에 저장해 오프라인으로 재생하는 개인 음악 플레이어",
   "start_url": "./",
   "scope": "./",
@@ -8,7 +8,17 @@
   "background_color": "#100d18",
   "theme_color": "#100d18",
   "icons": [
-    { "src": "./icon-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" },
-    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+    {
+      "src": "./hoyul-music-icon-192-v2.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./hoyul-music-icon-512-v2.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }
