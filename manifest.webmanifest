@@ -1,0 +1,14 @@
+{
+  "name": "오프라인 뮤직 플레이어",
+  "short_name": "뮤직",
+  "description": "아이폰 파일 앱의 음악을 기기에 저장해 오프라인으로 재생하는 개인 음악 플레이어",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0f1115",
+  "theme_color": "#0f1115",
+  "icons": [
+    { "src": "./icon-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" },
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
