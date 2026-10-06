@@ -19,6 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let positions = {};
   let lastSavedSecond = -1;
   let importing = false;
+  let preparedNext = null;
+  let prepareGeneration = 0;
 
   function state() {
     return { currentId, shuffle, repeat, positions };
@@ -247,6 +249,49 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function clearPreparedNext() {
+    prepareGeneration++;
+    if (preparedNext?.url) URL.revokeObjectURL(preparedNext.url);
+    preparedNext = null;
+  }
+
+  function preparedNextIndex() {
+    if (!tracks.length || repeat === 'one') return -1;
+    const index = currentIndex();
+    if (index < 0) return 0;
+    if (!shuffle && repeat === 'off' && index === tracks.length - 1) return -1;
+
+    if (shuffle && tracks.length > 1) {
+      let candidate = index;
+      for (let attempts = 0; attempts < 12 && candidate === index; attempts++) {
+        candidate = Math.floor(Math.random() * tracks.length);
+      }
+      return candidate;
+    }
+
+    return (index + 1) % tracks.length;
+  }
+
+  async function prepareNextTrack() {
+    const generation = ++prepareGeneration;
+    if (preparedNext?.url) URL.revokeObjectURL(preparedNext.url);
+    preparedNext = null;
+
+    const index = preparedNextIndex();
+    if (index < 0) return;
+    const track = tracks[index];
+    if (!track || track.id === currentId) return;
+
+    try {
+      const record = await getAudioRecord(track.id);
+      if (generation !== prepareGeneration || !record?.blob) return;
+      preparedNext = {
+        id: track.id,
+        url: URL.createObjectURL(record.blob)
+      };
+    } catch {}
+  }
+
   async function updateTrackDuration(id, duration) {
     if (!Number.isFinite(duration) || duration <= 0) return;
     const track = tracks.find(item => item.id === id);
@@ -291,36 +336,52 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch {}
   }
 
-  async function selectTrack(id, autoplay) {
+  async function selectTrack(id, autoplay, startFromBeginning = false) {
     const track = tracks.find(item => item.id === id);
     if (!track) return;
 
     rememberPosition();
     audio.pause();
+
+    let nextUrl = null;
+    if (preparedNext?.id === id && preparedNext.url) {
+      nextUrl = preparedNext.url;
+      preparedNext = null;
+      prepareGeneration++;
+    } else {
+      clearPreparedNext();
+      let record;
+      try {
+        record = await getAudioRecord(id);
+      } catch (error) {
+        setStatus(error.message || '음악 파일을 열지 못했습니다.');
+        return;
+      }
+
+      if (!record?.blob) {
+        setStatus('저장된 음악 데이터가 없습니다.');
+        return;
+      }
+      nextUrl = URL.createObjectURL(record.blob);
+    }
+
     revokeObjectUrl();
-
-    let record;
-    try {
-      record = await getAudioRecord(id);
-    } catch (error) {
-      setStatus(error.message || '음악 파일을 열지 못했습니다.');
-      return;
-    }
-
-    if (!record?.blob) {
-      setStatus('저장된 음악 데이터가 없습니다.');
-      return;
-    }
-
     currentId = id;
     saveState();
-    objectUrl = URL.createObjectURL(record.blob);
+    objectUrl = nextUrl;
     audio.src = objectUrl;
     audio.load();
     applyMediaSession(track);
     renderAll();
 
-    const desiredPosition = Number(positions[id] || 0);
+    let playPromise = null;
+    if (autoplay) {
+      try {
+        playPromise = audio.play();
+      } catch {}
+    }
+
+    const desiredPosition = startFromBeginning ? 0 : Number(positions[id] || 0);
     const onLoaded = async () => {
       audio.removeEventListener('loadedmetadata', onLoaded);
       await updateTrackDuration(id, audio.duration);
@@ -329,13 +390,15 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       updateTimeline();
       updateMediaPosition();
+      void prepareNextTrack();
 
       if (autoplay) {
         try {
-          await audio.play();
-          setStatus('재생 중 · 홈 화면 이동과 화면 잠금을 테스트해 보세요.');
-        } catch (error) {
-          setStatus('재생 버튼을 한 번 눌러 주세요. iPhone은 사용자 동작 후 재생을 허용합니다.');
+          if (playPromise) await playPromise;
+          else await audio.play();
+          setStatus('재생 중');
+        } catch {
+          setStatus('재생 버튼을 한 번 눌러 주세요.');
         }
       }
     };
@@ -407,11 +470,18 @@ document.addEventListener('DOMContentLoaded', () => {
       saveState();
       updateTimeline();
       setStatus('재생목록 끝');
+      clearPreparedNext();
+      return;
+    }
+
+    if (fromEnded && preparedNext?.id) {
+      const id = preparedNext.id;
+      await selectTrack(id, true, true);
       return;
     }
 
     const next = nextIndex(1);
-    if (next >= 0) await selectTrack(tracks[next].id, true);
+    if (next >= 0) await selectTrack(tracks[next].id, true, fromEnded);
   }
 
   async function prevTrack() {
@@ -522,6 +592,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const wasCurrent = currentId === id;
     if (wasCurrent) {
+      clearPreparedNext();
       audio.pause();
       audio.removeAttribute('src');
       audio.load();
@@ -556,6 +627,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!tracks.length) return;
     if (!confirm('이 기기에 저장된 음악을 모두 삭제할까요?')) return;
 
+    clearPreparedNext();
     audio.pause();
     audio.removeAttribute('src');
     audio.load();
@@ -648,12 +720,14 @@ document.addEventListener('DOMContentLoaded', () => {
     shuffle = !shuffle;
     saveState();
     renderModes();
+    void prepareNextTrack();
   });
 
   $('repeatBtn').addEventListener('click', () => {
     repeat = repeat === 'off' ? 'all' : repeat === 'all' ? 'one' : 'off';
     saveState();
     renderModes();
+    void prepareNextTrack();
   });
 
   $('seek').addEventListener('input', () => {
@@ -683,6 +757,7 @@ document.addEventListener('DOMContentLoaded', () => {
     $('playBtn').setAttribute('aria-label', '일시정지');
     setMediaPlaybackState();
     renderTracks();
+    void prepareNextTrack();
   });
 
   audio.addEventListener('pause', () => {
@@ -719,9 +794,15 @@ document.addEventListener('DOMContentLoaded', () => {
     setStatus('이 음악 파일을 iPhone Safari가 재생하지 못했습니다. 다른 형식으로 변환해 보세요.');
   });
 
-  window.addEventListener('pagehide', rememberPosition);
+  window.addEventListener('pagehide', () => {
+    rememberPosition();
+    void prepareNextTrack();
+  });
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) rememberPosition();
+    if (document.hidden) {
+      rememberPosition();
+      void prepareNextTrack();
+    }
   });
 
   async function init() {
