@@ -1,6 +1,6 @@
 /* App shell only. Imported music remains in IndexedDB and is never uploaded. */
 'use strict';
-const VERSION = '1.0.0';
+const VERSION = '1.1.0';
 const CACHE = 'offline-music-shell:' + VERSION;
 const SCOPE = self.registration.scope;
 const FILES = ['index.html', 'styles.css', 'app.js', 'manifest.webmanifest', 'icon.svg', 'icon-180.png'];

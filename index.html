@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0f1115">
+  <meta name="theme-color" content="#100d18">
   <meta name="color-scheme" content="dark">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="뮤직">
   <meta name="description" content="아이폰 파일 앱의 음악을 기기에 저장해 오프라인으로 재생하는 개인 음악 플레이어">
-  <meta name="app-version" content="1.0.0">
+  <meta name="app-version" content="1.1.0">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./icon-180.png">
@@ -31,11 +31,6 @@
     </header>
 
     <main>
-      <section id="installHint" class="notice" hidden>
-        <strong>홈 화면 앱으로 사용하세요.</strong>
-        <span>Safari 공유 버튼 → 홈 화면에 추가. 재생을 시작한 뒤 화면 잠금과 앱 전환을 테스트하면 됩니다.</span>
-      </section>
-
       <section class="now-card" aria-label="현재 재생">
         <div class="art" aria-hidden="true">
           <span>♪</span>
@@ -97,11 +92,11 @@
       <h3>음악 전체 삭제</h3>
       <button id="clearBtn" class="danger wide" type="button">저장된 음악 모두 삭제</button>
 
-      <p class="version">버전 1.0.0</p>
+      <p class="version">버전 1.1.0</p>
     </div>
   </dialog>
 
-  <input id="fileInput" type="file" accept="audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg" multiple hidden>
+  <input id="fileInput" type="file" accept=".mp3,.m4a,.aac,.wav,.flac,.ogg" multiple hidden>
   <audio id="audio" preload="metadata" playsinline webkit-playsinline></audio>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 </body>

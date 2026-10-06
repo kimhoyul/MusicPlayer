@@ -637,12 +637,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function showInstallHint() {
-    const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-    const isiOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-    $('installHint').hidden = standalone || !isiOS;
-  }
-
   $('addBtn').addEventListener('click', () => $('fileInput').click());
   $('emptyAddBtn').addEventListener('click', () => $('fileInput').click());
   $('fileInput').addEventListener('change', () => { void importFiles($('fileInput').files); });
@@ -732,7 +726,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function init() {
     loadState();
-    showInstallHint();
     registerMediaActions();
     renderModes();
 
