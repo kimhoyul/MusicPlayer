@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f1115">
+  <meta name="color-scheme" content="dark">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="뮤직">
+  <meta name="description" content="아이폰 파일 앱의 음악을 기기에 저장해 오프라인으로 재생하는 개인 음악 플레이어">
+  <meta name="app-version" content="1.0.0">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icon-180.png">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
+  <title>오프라인 뮤직</title>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">OFFLINE MUSIC</p>
+        <h1>내 음악</h1>
+      </div>
+      <div class="top-actions">
+        <button id="manageBtn" class="ghost" type="button">관리</button>
+        <button id="addBtn" class="primary" type="button">음악 추가</button>
+      </div>
+    </header>
+
+    <main>
+      <section id="installHint" class="notice" hidden>
+        <strong>홈 화면 앱으로 사용하세요.</strong>
+        <span>Safari 공유 버튼 → 홈 화면에 추가. 재생을 시작한 뒤 화면 잠금과 앱 전환을 테스트하면 됩니다.</span>
+      </section>
+
+      <section class="now-card" aria-label="현재 재생">
+        <div class="art" aria-hidden="true">
+          <span>♪</span>
+        </div>
+        <div class="now-meta">
+          <p id="nowArtist" class="artist">재생할 음악을 선택하세요</p>
+          <h2 id="nowTitle">음악 없음</h2>
+        </div>
+
+        <div class="timeline">
+          <span id="currentTime">0:00</span>
+          <input id="seek" type="range" min="0" max="1000" value="0" aria-label="재생 위치" disabled>
+          <span id="duration">0:00</span>
+        </div>
+
+        <div class="transport">
+          <button id="shuffleBtn" class="icon-btn small" type="button" aria-pressed="false" aria-label="셔플">셔플</button>
+          <button id="prevBtn" class="icon-btn" type="button" aria-label="이전 곡">‹‹</button>
+          <button id="playBtn" class="play-btn" type="button" aria-label="재생" disabled>▶</button>
+          <button id="nextBtn" class="icon-btn" type="button" aria-label="다음 곡">››</button>
+          <button id="repeatBtn" class="icon-btn small" type="button" aria-label="반복 모드">반복</button>
+        </div>
+
+        <p id="playbackStatus" class="status">음악을 추가하면 이 기기에 오프라인 저장됩니다.</p>
+      </section>
+
+      <section class="library">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">LIBRARY</p>
+            <h2>재생목록</h2>
+          </div>
+          <span id="trackCount" class="count">0곡</span>
+        </div>
+        <div id="emptyState" class="empty">
+          <strong>아직 음악이 없습니다.</strong>
+          <span>아이폰 파일 앱에서 MP3, M4A, AAC, WAV 등의 음악 파일을 가져오세요.</span>
+          <button id="emptyAddBtn" class="primary" type="button">음악 가져오기</button>
+        </div>
+        <div id="trackList" class="track-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="manageDialog">
+    <div class="dialog-head">
+      <h2>관리</h2>
+      <button id="closeManageBtn" class="ghost" type="button">닫기</button>
+    </div>
+    <div class="dialog-body">
+      <h3>저장 공간</h3>
+      <p id="storageInfo" class="muted">확인 중…</p>
+      <button id="persistBtn" class="wide" type="button">저장 공간 보호 요청</button>
+      <p id="persistInfo" class="muted"></p>
+
+      <h3>백그라운드 재생 테스트</h3>
+      <p class="muted">음악을 직접 재생한 뒤 홈으로 나가거나 화면을 잠가 보세요. iOS가 웹앱 프로세스를 종료하면 재생이 끊길 수 있습니다.</p>
+
+      <h3>음악 전체 삭제</h3>
+      <button id="clearBtn" class="danger wide" type="button">저장된 음악 모두 삭제</button>
+
+      <p class="version">버전 1.0.0</p>
+    </div>
+  </dialog>
+
+  <input id="fileInput" type="file" accept="audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg" multiple hidden>
+  <audio id="audio" preload="metadata" playsinline webkit-playsinline></audio>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
