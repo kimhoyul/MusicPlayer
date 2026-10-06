@@ -296,12 +296,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function syncArtwork(url, hasArtwork) {
-    const image = $('coverImage');
-    const fallback = $('coverFallback');
-    image.src = url;
-    image.hidden = !hasArtwork;
-    fallback.hidden = hasArtwork;
-    document.documentElement.style.setProperty('--cover-image', 'url("' + url.replace(/"/g, '%22') + '")');
+    const source = hasArtwork ? url : FALLBACK_ARTWORK;
+    document.documentElement.style.setProperty(
+      '--cover-image',
+      'url("' + source.replace(/"/g, '%22') + '")'
+    );
+    document.body.classList.toggle('has-artwork', hasArtwork);
   }
 
   function setArtworkBlob(blob) {
