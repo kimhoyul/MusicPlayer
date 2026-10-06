@@ -21,6 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let importing = false;
   let preparedNext = null;
   let prepareGeneration = 0;
+  let artworkObjectUrl = null;
+  const FALLBACK_ARTWORK = new URL('./hoyul-music-icon-512-v2.png', location.href).href;
 
   function state() {
     return { currentId, shuffle, repeat, positions };
@@ -287,9 +289,131 @@ document.addEventListener('DOMContentLoaded', () => {
       if (generation !== prepareGeneration || !record?.blob) return;
       preparedNext = {
         id: track.id,
-        url: URL.createObjectURL(record.blob)
+        url: URL.createObjectURL(record.blob),
+        blob: record.blob
       };
     } catch {}
+  }
+
+  function syncArtwork(url, hasArtwork) {
+    const image = $('coverImage');
+    const fallback = $('coverFallback');
+    image.src = url;
+    image.hidden = !hasArtwork;
+    fallback.hidden = hasArtwork;
+    document.documentElement.style.setProperty('--cover-image', 'url("' + url.replace(/"/g, '%22') + '")');
+  }
+
+  function setArtworkBlob(blob) {
+    if (artworkObjectUrl) {
+      URL.revokeObjectURL(artworkObjectUrl);
+      artworkObjectUrl = null;
+    }
+    if (!blob) {
+      syncArtwork(FALLBACK_ARTWORK, false);
+      return;
+    }
+    artworkObjectUrl = URL.createObjectURL(blob);
+    syncArtwork(artworkObjectUrl, true);
+  }
+
+  function synchsafe(bytes, offset) {
+    return ((bytes[offset] & 0x7f) << 21) |
+      ((bytes[offset + 1] & 0x7f) << 14) |
+      ((bytes[offset + 2] & 0x7f) << 7) |
+      (bytes[offset + 3] & 0x7f);
+  }
+
+  function uint32be(bytes, offset) {
+    return (bytes[offset] * 0x1000000) +
+      (bytes[offset + 1] << 16) +
+      (bytes[offset + 2] << 8) +
+      bytes[offset + 3];
+  }
+
+  async function extractMp3Artwork(blob) {
+    if (!blob || blob.size < 10) return null;
+    const head = new Uint8Array(await blob.slice(0, 10).arrayBuffer());
+    if (head[0] !== 0x49 || head[1] !== 0x44 || head[2] !== 0x33) return null;
+    const version = head[3];
+    if (version !== 3 && version !== 4) return null;
+
+    const tagSize = synchsafe(head, 6);
+    const end = Math.min(blob.size, 10 + tagSize);
+    if (end <= 20) return null;
+    const bytes = new Uint8Array(await blob.slice(0, end).arrayBuffer());
+
+    let offset = 10;
+    while (offset + 10 <= bytes.length) {
+      const id = String.fromCharCode(bytes[offset], bytes[offset + 1], bytes[offset + 2], bytes[offset + 3]);
+      if (!/^[A-Z0-9]{4}$/.test(id)) break;
+
+      const frameSize = version === 4 ? synchsafe(bytes, offset + 4) : uint32be(bytes, offset + 4);
+      if (!frameSize || frameSize < 4) break;
+      const frameStart = offset + 10;
+      const frameEnd = Math.min(frameStart + frameSize, bytes.length);
+
+      if (id === 'APIC') {
+        let p = frameStart;
+        const encoding = bytes[p++];
+        let mimeEnd = p;
+        while (mimeEnd < frameEnd && bytes[mimeEnd] !== 0) mimeEnd++;
+        const mime = new TextDecoder('latin1').decode(bytes.slice(p, mimeEnd)) || 'image/jpeg';
+        p = mimeEnd + 1;
+        if (p >= frameEnd) return null;
+        p++;
+
+        if (encoding === 0 || encoding === 3) {
+          while (p < frameEnd && bytes[p] !== 0) p++;
+          p++;
+        } else {
+          while (p + 1 < frameEnd && !(bytes[p] === 0 && bytes[p + 1] === 0)) p += 2;
+          p += 2;
+        }
+
+        if (p >= frameEnd) return null;
+        const data = bytes.slice(p, frameEnd);
+        return new Blob([data], { type: mime });
+      }
+
+      offset = frameStart + frameSize;
+    }
+    return null;
+  }
+
+  async function loadTrackArtwork(track, sourceBlob) {
+    if (!track) {
+      setArtworkBlob(null);
+      return;
+    }
+
+    if (track.artworkBlob instanceof Blob) {
+      if (currentId === track.id) setArtworkBlob(track.artworkBlob);
+      return;
+    }
+
+    if (!sourceBlob || !/\.mp3$/i.test(track.name || '')) {
+      if (currentId === track.id) setArtworkBlob(null);
+      return;
+    }
+
+    try {
+      const artwork = await extractMp3Artwork(sourceBlob);
+      if (currentId !== track.id) return;
+      if (!artwork) {
+        setArtworkBlob(null);
+        return;
+      }
+
+      track.artworkBlob = artwork;
+      try {
+        await idbRequest(TRACKS, 'readwrite', store => store.put(track));
+      } catch {}
+      setArtworkBlob(artwork);
+      applyMediaSession(track, artworkObjectUrl);
+    } catch {
+      if (currentId === track.id) setArtworkBlob(null);
+    }
   }
 
   async function updateTrackDuration(id, duration) {
@@ -303,16 +427,15 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTracks();
   }
 
-  function applyMediaSession(track) {
+  function applyMediaSession(track, artworkSrc = null) {
     if (!('mediaSession' in navigator)) return;
     try {
+      const src = artworkSrc || FALLBACK_ARTWORK;
       navigator.mediaSession.metadata = new MediaMetadata({
         title: track.title || track.name,
         artist: track.artist || '로컬 파일',
         album: '오프라인 뮤직',
-        artwork: [
-          { src: new URL('./icon.svg', location.href).href, type: 'image/svg+xml' }
-        ]
+        artwork: [{ src }]
       });
     } catch {}
   }
@@ -344,8 +467,10 @@ document.addEventListener('DOMContentLoaded', () => {
     audio.pause();
 
     let nextUrl = null;
+    let sourceBlob = null;
     if (preparedNext?.id === id && preparedNext.url) {
       nextUrl = preparedNext.url;
+      sourceBlob = preparedNext.blob || null;
       preparedNext = null;
       prepareGeneration++;
     } else {
@@ -362,6 +487,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setStatus('저장된 음악 데이터가 없습니다.');
         return;
       }
+      sourceBlob = record.blob;
       nextUrl = URL.createObjectURL(record.blob);
     }
 
@@ -371,7 +497,10 @@ document.addEventListener('DOMContentLoaded', () => {
     objectUrl = nextUrl;
     audio.src = objectUrl;
     audio.load();
-    applyMediaSession(track);
+    if (track.artworkBlob instanceof Blob) setArtworkBlob(track.artworkBlob);
+    else setArtworkBlob(null);
+    applyMediaSession(track, artworkObjectUrl || null);
+    void loadTrackArtwork(track, sourceBlob);
     renderAll();
 
     let playPromise = null;
@@ -645,6 +774,7 @@ document.addEventListener('DOMContentLoaded', () => {
     tracks = [];
     currentId = null;
     positions = {};
+    setArtworkBlob(null);
     saveState();
     renderAll();
     $('manageDialog').close();
@@ -807,6 +937,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function init() {
     loadState();
+    setArtworkBlob(null);
     registerMediaActions();
     renderModes();
 

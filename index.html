@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Hoyul Music">
   <meta name="description" content="아이폰 파일 앱의 음악을 기기에 저장해 오프라인으로 재생하는 개인 음악 플레이어">
-  <meta name="app-version" content="1.3.0">
+  <meta name="app-version" content="1.4.0">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" sizes="180x180" href="./hoyul-music-icon-180-v2.png">
@@ -18,39 +18,45 @@
   <title>Hoyul Music</title>
 </head>
 <body>
+  <div class="player-backdrop" aria-hidden="true">
+    <div class="backdrop-image backdrop-soft"></div>
+    <div class="backdrop-image backdrop-heavy"></div>
+    <div class="backdrop-shade"></div>
+  </div>
+
   <div class="app">
     <header class="topbar">
-      <div class="brand-wrap">
-        <h1 class="brand-title">Hoyul Music</h1>
-      </div>
-      <div class="top-actions">
-        <button id="manageBtn" class="ghost" type="button">관리</button>
-        <button id="addBtn" class="primary" type="button">음악 추가</button>
-      </div>
+      <button id="addBtn" class="top-circle" type="button" aria-label="음악 추가">＋</button>
+      <div class="top-caption" aria-hidden="true">재생 중</div>
+      <button id="manageBtn" class="top-circle more" type="button" aria-label="관리">•••</button>
     </header>
 
     <main>
       <section class="now-card" aria-label="현재 재생">
-        <div class="art" aria-hidden="true">
-          <span>♪</span>
+        <div class="art">
+          <img id="coverImage" src="./hoyul-music-icon-512-v2.png" alt="">
+          <span id="coverFallback" aria-hidden="true">♪</span>
         </div>
+
         <div class="now-meta">
-          <p id="nowArtist" class="artist">재생할 음악을 선택하세요</p>
           <h2 id="nowTitle">음악 없음</h2>
+          <p id="nowArtist" class="artist">재생할 음악을 선택하세요</p>
         </div>
 
         <div class="timeline">
-          <span id="currentTime">0:00</span>
           <input id="seek" type="range" min="0" max="1000" value="0" aria-label="재생 위치" disabled>
-          <span id="duration">0:00</span>
+          <div class="time-row">
+            <span id="currentTime">0:00</span>
+            <span id="duration">0:00</span>
+          </div>
         </div>
 
         <div class="transport">
-          <button id="shuffleBtn" class="icon-btn small" type="button" aria-pressed="false" aria-label="셔플">셔플</button>
-          <button id="prevBtn" class="icon-btn" type="button" aria-label="이전 곡">⏮︎</button>
+          <button id="shuffleBtn" class="mode-btn" type="button" aria-pressed="false" aria-label="셔플">셔플</button>
+          <button id="prevBtn" class="transport-btn" type="button" aria-label="이전 곡">◀︎◀︎</button>
           <button id="playBtn" class="play-btn" type="button" aria-label="재생" disabled>▶</button>
-          <button id="nextBtn" class="icon-btn" type="button" aria-label="다음 곡">⏭︎</button>
-          <button id="repeatBtn" class="icon-btn small" type="button" aria-label="반복 모드">반복</button>
+          <button id="nextBtn" class="transport-btn" type="button" aria-label="다음 곡">▶︎▶︎</button>
+          <button id="repeatBtn" class="mode-btn" type="button" aria-label="반복 모드">반복</button>
         </div>
 
         <p id="playbackStatus" class="status">음악을 추가하면 이 기기에 오프라인 저장됩니다.</p>
@@ -58,15 +64,12 @@
 
       <section class="library">
         <div class="section-head">
-          <div>
-            <p class="eyebrow">LIBRARY</p>
-            <h2>재생목록</h2>
-          </div>
+          <h2>재생목록</h2>
           <span id="trackCount" class="count">0곡</span>
         </div>
         <div id="emptyState" class="empty">
           <strong>아직 음악이 없습니다.</strong>
-          <span>아이폰 파일 앱에서 MP3, M4A, AAC, WAV 등의 음악 파일을 가져오세요.</span>
+          <span>아이폰 파일 앱에서 음악 파일을 가져오세요.</span>
           <button id="emptyAddBtn" class="primary" type="button">음악 가져오기</button>
         </div>
         <div id="trackList" class="track-list"></div>
@@ -91,7 +94,7 @@
       <h3>음악 전체 삭제</h3>
       <button id="clearBtn" class="danger wide" type="button">저장된 음악 모두 삭제</button>
 
-      <p class="version">버전 1.3.0</p>
+      <p class="version">버전 1.4.0</p>
     </div>
   </dialog>
 
