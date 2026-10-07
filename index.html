@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Hoyul Music">
   <meta name="description" content="아이폰 파일 앱의 음악을 기기에 저장해 오프라인으로 재생하는 개인 음악 플레이어">
-  <meta name="app-version" content="2.0.0">
+  <meta name="app-version" content="2.1.0">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" sizes="180x180" href="./hoyul-music-icon-180-v2.png">
@@ -20,7 +20,7 @@
 <body>
   <div class="app">
     <header class="topbar">
-      <button id="addBtn" class="top-circle" type="button" aria-label="음악 추가">＋</button>
+      <button id="addBtn" class="top-circle" type="button" aria-label="파일 추가">＋</button>
       <div class="top-caption" aria-hidden="true"></div>
       <button id="manageBtn" class="top-circle more" type="button" aria-label="관리">•••</button>
     </header>
@@ -76,13 +76,25 @@
 
       <section class="library">
         <div class="section-head">
-          <h2>재생목록</h2>
+          <div>
+            <h2 id="libraryTitle">보관함</h2>
+            <p id="librarySubtitle" class="library-subtitle">전체 음악</p>
+          </div>
           <span id="trackCount" class="count">0곡</span>
         </div>
+
+        <div class="library-actions">
+          <button id="libraryFileAddBtn" class="library-action" type="button">파일 추가</button>
+          <button id="playlistAddBtn" class="library-action primary-action" type="button">플레이리스트 +</button>
+          <button id="playlistEditBtn" class="library-action" type="button" hidden>편집</button>
+        </div>
+
+        <div id="playlistTabs" class="playlist-tabs" aria-label="플레이리스트 선택"></div>
+
         <div id="emptyState" class="empty">
-          <strong>아직 음악이 없습니다.</strong>
-          <span>아이폰 파일 앱에서 음악 파일을 가져오세요.</span>
-          <button id="emptyAddBtn" class="primary" type="button">음악 가져오기</button>
+          <strong id="emptyTitle">아직 음악이 없습니다.</strong>
+          <span id="emptyText">아이폰 파일 앱에서 음악 파일을 가져오세요.</span>
+          <button id="emptyAddBtn" class="primary" type="button">파일 추가</button>
         </div>
         <div id="trackList" class="track-list"></div>
       </section>
@@ -106,7 +118,35 @@
       <h3>음악 전체 삭제</h3>
       <button id="clearBtn" class="danger wide" type="button">저장된 음악 모두 삭제</button>
 
-      <p class="version">버전 2.0.0</p>
+      <p class="version">버전 2.1.0</p>
+    </div>
+  </dialog>
+
+  <dialog id="playlistDialog" aria-labelledby="playlistDialogTitle">
+    <div class="dialog-head">
+      <h2 id="playlistDialogTitle">새 플레이리스트</h2>
+      <button id="closePlaylistBtn" class="ghost" type="button">닫기</button>
+    </div>
+    <div class="dialog-body playlist-dialog-body">
+      <label class="field-label" for="playlistName">플레이리스트 이름</label>
+      <input id="playlistName" class="text-input" maxlength="80" placeholder="예: 자주 듣는 곡" autocomplete="off">
+
+      <div class="playlist-pick-head">
+        <p id="playlistPickSummary" class="muted">0곡 선택</p>
+        <div class="playlist-pick-actions">
+          <button id="selectAllPlaylistBtn" class="mini-action" type="button">전체 선택</button>
+          <button id="clearPlaylistSelectionBtn" class="mini-action" type="button">선택 해제</button>
+        </div>
+      </div>
+
+      <div id="playlistTrackChoices" class="playlist-track-choices"></div>
+
+      <div class="playlist-dialog-actions">
+        <button id="deletePlaylistBtn" class="danger" type="button" hidden>플레이리스트 삭제</button>
+        <span class="dialog-spacer"></span>
+        <button id="cancelPlaylistBtn" class="ghost" type="button">취소</button>
+        <button id="savePlaylistBtn" class="primary" type="button">저장</button>
+      </div>
     </div>
   </dialog>
 
