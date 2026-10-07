@@ -295,10 +295,39 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch {}
   }
 
+  function updateArtworkGeometry() {
+    const image = $('heroArtworkImage');
+    const root = document.documentElement;
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 390;
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 844;
+
+    let ratio = 1;
+    if (image?.naturalWidth > 0 && image?.naturalHeight > 0) {
+      ratio = image.naturalHeight / image.naturalWidth;
+    }
+
+    let artHeight = viewportWidth * ratio;
+    artHeight = Math.max(180, Math.min(artHeight, viewportHeight * 0.72));
+
+    const blurStart = Math.max(120, artHeight * 0.60);
+    const contentStart = Math.max(
+      viewportHeight * 0.48,
+      Math.min(viewportHeight * 0.64, artHeight * 0.88 + 54)
+    );
+
+    root.style.setProperty('--art-height', Math.round(artHeight) + 'px');
+    root.style.setProperty('--blur-start', Math.round(blurStart) + 'px');
+    root.style.setProperty('--content-start', Math.round(contentStart) + 'px');
+  }
+
   function syncArtwork(url, hasArtwork) {
     const source = hasArtwork ? url : FALLBACK_ARTWORK;
     const image = $('heroArtworkImage');
-    if (image) image.src = source;
+    if (image) {
+      image.onload = updateArtworkGeometry;
+      image.src = source;
+      if (image.complete) updateArtworkGeometry();
+    }
     document.documentElement.style.setProperty(
       '--cover-image',
       'url("' + source.replace(/"/g, '%22') + '")'
@@ -936,6 +965,11 @@ document.addEventListener('DOMContentLoaded', () => {
       void prepareNextTrack();
     }
   });
+
+  window.addEventListener('resize', updateArtworkGeometry, { passive: true });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', updateArtworkGeometry, { passive: true });
+  }
 
   async function init() {
     loadState();
