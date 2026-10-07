@@ -1141,6 +1141,13 @@ document.addEventListener('DOMContentLoaded', () => {
           duration: 0
         };
 
+        if (/\.mp3$/i.test(file.name)) {
+          try {
+            const originalArtwork = await extractMp3Artwork(file);
+            if (originalArtwork) meta.artworkBlob = originalArtwork;
+          } catch {}
+        }
+
         try {
           await new Promise((resolve, reject) => {
             const tx = db.transaction([TRACKS, AUDIO], 'readwrite');
@@ -1152,6 +1159,7 @@ document.addEventListener('DOMContentLoaded', () => {
           });
           existing.add(fp);
           added++;
+          if (!(meta.artworkBlob instanceof Blob)) missingCoverQueue.push(id);
           setStatus('음악 저장 중… ' + added + '곡');
         } catch (error) {
           if (error?.name === 'ConstraintError') duplicate++;
@@ -1181,6 +1189,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (failed) parts.push(failed + '곡 실패');
       toast(parts.join(' · ') || '추가된 음악이 없습니다.');
       await showStorage();
+      if (missingCoverQueue.length && !$('coverDialog').open) continueMissingCoverQueue();
     } finally {
       importing = false;
       $('addBtn').disabled = false;
@@ -1373,6 +1382,42 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     updatePlaylistPickSummary();
   });
+  $('closeTrackActionBtn').addEventListener('click', () => $('trackActionDialog').close());
+  $('changeCoverBtn').addEventListener('click', () => {
+    const id = actionTrackId; $('trackActionDialog').close(); if (id) openCoverEditor(id);
+  });
+  $('addTrackToPlaylistBtn').addEventListener('click', () => {
+    $('trackActionDialog').close(); renderPlaylistTargets(); $('addToPlaylistDialog').showModal();
+  });
+  $('removeOrDeleteTrackBtn').addEventListener('click', () => {
+    const id = actionTrackId; $('trackActionDialog').close();
+    if (!id) return;
+    if (activePlaylistId) void removeTrackFromPlaylist(activePlaylistId, id);
+    else void deleteTrack(id);
+  });
+  $('closeAddToPlaylistBtn').addEventListener('click', () => $('addToPlaylistDialog').close());
+  $('closeCoverBtn').addEventListener('click', () => { $('coverDialog').close(); continueMissingCoverQueue(); });
+  $('coverDialog').addEventListener('cancel', event => {
+    event.preventDefault(); $('coverDialog').close(); continueMissingCoverQueue();
+  });
+  $('searchCoverBtn').addEventListener('click', () => {
+    $('coverSearchArea').hidden = false; void searchCoverCandidates();
+  });
+  $('runCoverSearchBtn').addEventListener('click', () => { void searchCoverCandidates(); });
+  $('coverSearchQuery').addEventListener('keydown', event => {
+    if (event.key === 'Enter') { event.preventDefault(); void searchCoverCandidates(); }
+  });
+  $('chooseCoverPhotoBtn').addEventListener('click', () => $('coverPhotoInput').click());
+  $('chooseCoverFileBtn').addEventListener('click', () => $('coverFileInput').click());
+  $('coverPhotoInput').addEventListener('change', () => {
+    const file = $('coverPhotoInput').files?.[0]; void useCoverFile(file); $('coverPhotoInput').value = '';
+  });
+  $('coverFileInput').addEventListener('change', () => {
+    const file = $('coverFileInput').files?.[0]; void useCoverFile(file); $('coverFileInput').value = '';
+  });
+  $('restoreCoverBtn').addEventListener('click', () => { void restoreOriginalCover(); });
+  $('removeCoverBtn').addEventListener('click', () => { void removeTrackCover(); });
+
   $('fileInput').addEventListener('change', () => { void importFiles($('fileInput').files); });
   $('playBtn').addEventListener('click', () => { void playPause(); });
   $('prevBtn').addEventListener('click', () => { void prevTrack(); });
