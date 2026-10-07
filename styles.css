@@ -319,12 +319,12 @@ body:not(.has-artwork) .hero-art {
 
 .mode-icon {
   display: block;
-  width: 23px;
-  height: 23px;
+  width: 24px;
+  height: 24px;
   margin: auto;
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.9;
+  stroke-width: 2.15;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -341,7 +341,7 @@ body:not(.has-artwork) .hero-art {
   min-width: 12px;
   height: 12px;
   padding: 0 2px;
-  transform: translate(-50%, -44%);
+  transform: translate(-50%, -48%);
   border-radius: 7px;
   color: currentColor;
   background: rgba(9,8,11,.82);
