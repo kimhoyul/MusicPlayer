@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Hoyul Music">
   <meta name="description" content="아이폰 파일 앱의 음악을 기기에 저장해 오프라인으로 재생하는 개인 음악 플레이어">
-  <meta name="app-version" content="2.2.0">
+  <meta name="app-version" content="2.3.0">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" sizes="180x180" href="./hoyul-music-icon-user-v3.png">
@@ -118,7 +118,7 @@
       <h3>음악 전체 삭제</h3>
       <button id="clearBtn" class="danger wide" type="button">저장된 음악 모두 삭제</button>
 
-      <p class="version">버전 2.2.0</p>
+      <p class="version">버전 2.3.0</p>
     </div>
   </dialog>
 
@@ -150,6 +150,11 @@
     </div>
   </dialog>
 
+  <dialog id="trackActionDialog"><div class="dialog-head"><h2 id="trackActionTitle">음악</h2><button id="closeTrackActionBtn" class="ghost" type="button">닫기</button></div><div class="dialog-body action-sheet"><button id="changeCoverBtn" class="sheet-action" type="button">커버 변경</button><button id="addTrackToPlaylistBtn" class="sheet-action" type="button">플레이리스트에 추가</button><button id="removeOrDeleteTrackBtn" class="sheet-action danger" type="button">삭제</button></div></dialog>
+  <dialog id="coverDialog"><div class="dialog-head"><h2 id="coverDialogTitle">커버 변경</h2><button id="closeCoverBtn" class="ghost" type="button">닫기</button></div><div class="dialog-body"><p id="coverTrackName" class="cover-track-name"></p><div class="cover-actions"><button id="searchCoverBtn" class="sheet-action" type="button">온라인에서 검색</button><button id="chooseCoverPhotoBtn" class="sheet-action" type="button">사진 / 이미지 선택</button><button id="chooseCoverFileBtn" class="sheet-action" type="button">파일에서 선택</button><button id="restoreCoverBtn" class="sheet-action" type="button">원본 커버로 복원</button><button id="removeCoverBtn" class="sheet-action danger" type="button">커버 제거</button></div><div id="coverSearchArea" class="cover-search-area" hidden><div class="cover-search-row"><input id="coverSearchQuery" class="text-input" type="search" placeholder="아티스트 + 곡명"><button id="runCoverSearchBtn" class="primary" type="button">검색</button></div><p id="coverSearchStatus" class="muted"></p><div id="coverSearchResults" class="cover-results"></div></div></div></dialog>
+  <dialog id="addToPlaylistDialog"><div class="dialog-head"><h2>플레이리스트에 추가</h2><button id="closeAddToPlaylistBtn" class="ghost" type="button">닫기</button></div><div class="dialog-body"><div id="addToPlaylistChoices" class="playlist-targets"></div></div></dialog>
+  <input id="coverPhotoInput" type="file" accept="image/*" hidden>
+  <input id="coverFileInput" type="file" accept=".jpg,.jpeg,.png,.webp,.heic,.heif" hidden>
   <input id="fileInput" type="file" accept=".mp3,.m4a,.aac,.wav,.flac,.ogg" multiple hidden>
   <audio id="audio" preload="metadata" playsinline webkit-playsinline></audio>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
