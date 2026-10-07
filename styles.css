@@ -132,38 +132,40 @@ main { padding: 0; }
 
 .hero-art {
   top: 0;
-  height: 68dvh;
+  height: 100vw;
   transform: translateX(-50%);
   background-image: var(--cover-image);
-  background-size: cover;
-  background-position: center 34%;
+  background-size: 100% 100%;
+  background-position: center top;
   background-repeat: no-repeat;
 }
 
 .hero-blur {
-  top: 34dvh;
-  height: 58dvh;
-  transform: translateX(-50%) scale(1.16);
+  top: 68vw;
+  height: calc(100dvh - 44vw);
+  min-height: 52dvh;
+  transform: translateX(-50%) scale(1.20);
+  transform-origin: center top;
   background-image: var(--cover-image);
   background-size: cover;
-  background-position: center 62%;
+  background-position: center 58%;
   background-repeat: no-repeat;
-  filter: blur(52px) saturate(1.18) brightness(.58);
-  opacity: .98;
+  filter: blur(58px) saturate(1.22) brightness(.54);
+  opacity: 1;
   -webkit-mask-image: linear-gradient(
     to bottom,
     transparent 0%,
-    rgba(0,0,0,.18) 8%,
-    rgba(0,0,0,.82) 30%,
-    #000 58%,
+    rgba(0,0,0,.22) 10%,
+    rgba(0,0,0,.78) 28%,
+    #000 48%,
     #000 100%
   );
   mask-image: linear-gradient(
     to bottom,
     transparent 0%,
-    rgba(0,0,0,.18) 8%,
-    rgba(0,0,0,.82) 30%,
-    #000 58%,
+    rgba(0,0,0,.22) 10%,
+    rgba(0,0,0,.78) 28%,
+    #000 48%,
     #000 100%
   );
 }
@@ -175,16 +177,17 @@ main { padding: 0; }
   background:
     linear-gradient(
       to bottom,
-      rgba(0,0,0,.05) 0%,
-      rgba(0,0,0,.08) 30%,
-      rgba(6,5,8,.22) 43%,
-      rgba(8,7,10,.58) 59%,
-      rgba(9,8,11,.88) 76%,
-      #09080b 94%
+      rgba(0,0,0,.02) 0%,
+      rgba(0,0,0,.03) 30vw,
+      rgba(6,5,8,.14) 74vw,
+      rgba(8,7,10,.52) 104vw,
+      rgba(9,8,11,.88) 78dvh,
+      #09080b 96%
     );
 }
 
 body:not(.has-artwork) .hero-art {
+  background-size: cover;
   filter: saturate(.8) brightness(.55);
 }
 
@@ -196,7 +199,7 @@ body:not(.has-artwork) .hero-art {
   flex-direction: column;
   justify-content: flex-end;
   padding:
-    calc(54dvh + 16px)
+    calc(100vw + 42px)
     max(24px, env(safe-area-inset-right))
     calc(24px + env(safe-area-inset-bottom))
     max(24px, env(safe-area-inset-left));
@@ -542,7 +545,7 @@ dialog::backdrop {
   .now-content {
     padding-left: 20px;
     padding-right: 20px;
-    padding-top: calc(53dvh + 14px);
+    padding-top: calc(100vw + 36px);
   }
 }
 
