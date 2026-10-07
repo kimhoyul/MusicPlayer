@@ -146,7 +146,7 @@ main { padding: 0; }
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
-  filter: blur(36px) saturate(1.20) brightness(.70);
+  filter: blur(30px) saturate(1.12) brightness(.78);
   opacity: .98;
 }
 
@@ -311,14 +311,49 @@ body:not(.has-artwork) .hero-art {
 }
 
 .mode-btn {
+  position: relative;
   width: 48px;
   height: 48px;
-  color: rgba(255,255,255,.52);
-  font-size: 10px;
-  font-weight: 650;
+  color: rgba(255,255,255,.54);
 }
 
-.mode-btn.active { color: var(--accent); }
+.mode-icon {
+  display: block;
+  width: 23px;
+  height: 23px;
+  margin: auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mode-btn.active {
+  color: var(--accent);
+}
+
+.repeat-one-badge {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: none;
+  min-width: 12px;
+  height: 12px;
+  padding: 0 2px;
+  transform: translate(-50%, -44%);
+  border-radius: 7px;
+  color: currentColor;
+  background: rgba(9,8,11,.82);
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 12px;
+  text-align: center;
+}
+
+.mode-btn.repeat-one .repeat-one-badge {
+  display: block;
+}
 
 .status {
   min-height: 14px;
@@ -573,19 +608,31 @@ body.landscape-art .hero-art {
   -webkit-mask-image: linear-gradient(
     to bottom,
     transparent 0%,
-    rgba(0,0,0,.72) 7%,
-    #000 17%,
-    #000 82%,
-    rgba(0,0,0,.72) 93%,
+    rgba(0,0,0,.12) 4%,
+    rgba(0,0,0,.38) 10%,
+    rgba(0,0,0,.68) 18%,
+    rgba(0,0,0,.90) 27%,
+    #000 34%,
+    #000 66%,
+    rgba(0,0,0,.90) 73%,
+    rgba(0,0,0,.68) 82%,
+    rgba(0,0,0,.38) 90%,
+    rgba(0,0,0,.12) 96%,
     transparent 100%
   );
   mask-image: linear-gradient(
     to bottom,
     transparent 0%,
-    rgba(0,0,0,.72) 7%,
-    #000 17%,
-    #000 82%,
-    rgba(0,0,0,.72) 93%,
+    rgba(0,0,0,.12) 4%,
+    rgba(0,0,0,.38) 10%,
+    rgba(0,0,0,.68) 18%,
+    rgba(0,0,0,.90) 27%,
+    #000 34%,
+    #000 66%,
+    rgba(0,0,0,.90) 73%,
+    rgba(0,0,0,.68) 82%,
+    rgba(0,0,0,.38) 90%,
+    rgba(0,0,0,.12) 96%,
     transparent 100%
   );
 }

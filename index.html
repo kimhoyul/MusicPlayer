@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Hoyul Music">
   <meta name="description" content="아이폰 파일 앱의 음악을 기기에 저장해 오프라인으로 재생하는 개인 음악 플레이어">
-  <meta name="app-version" content="1.9.0">
+  <meta name="app-version" content="2.0.0">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" sizes="180x180" href="./hoyul-music-icon-180-v2.png">
@@ -47,11 +47,27 @@
         </div>
 
         <div class="transport">
-          <button id="shuffleBtn" class="mode-btn" type="button" aria-pressed="false" aria-label="셔플">셔플</button>
+          <button id="shuffleBtn" class="mode-btn" type="button" aria-pressed="false" aria-label="셔플">
+            <svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 7h2.2c2.1 0 3.3.7 4.6 2.4l2.5 3.2c1.1 1.4 2 2.4 4.5 2.4H20"/>
+              <path d="M17 12l3 3-3 3"/>
+              <path d="M4 17h2.2c1.6 0 2.7-.5 3.7-1.6"/>
+              <path d="M13.6 8.6C14.7 7.4 15.8 7 17.8 7H20"/>
+              <path d="M17 4l3 3-3 3"/>
+            </svg>
+          </button>
           <button id="prevBtn" class="transport-btn" type="button" aria-label="이전 곡">◀︎◀︎</button>
           <button id="playBtn" class="play-btn" type="button" aria-label="재생" disabled>▶</button>
           <button id="nextBtn" class="transport-btn" type="button" aria-label="다음 곡">▶︎▶︎</button>
-          <button id="repeatBtn" class="mode-btn" type="button" aria-label="반복 모드">반복</button>
+          <button id="repeatBtn" class="mode-btn" type="button" aria-label="반복">
+            <svg class="mode-icon repeat-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7 7h9.5A3.5 3.5 0 0 1 20 10.5V12"/>
+              <path d="M17 4l3 3-3 3"/>
+              <path d="M17 17H7.5A3.5 3.5 0 0 1 4 13.5V12"/>
+              <path d="M7 20l-3-3 3-3"/>
+            </svg>
+            <span class="repeat-one-badge" aria-hidden="true">1</span>
+          </button>
         </div>
 
         <p id="playbackStatus" class="status">음악을 추가하면 이 기기에 오프라인 저장됩니다.</p>
@@ -90,7 +106,7 @@
       <h3>음악 전체 삭제</h3>
       <button id="clearBtn" class="danger wide" type="button">저장된 음악 모두 삭제</button>
 
-      <p class="version">버전 1.9.0</p>
+      <p class="version">버전 2.0.0</p>
     </div>
   </dialog>
 

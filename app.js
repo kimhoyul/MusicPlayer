@@ -150,12 +150,20 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderModes() {
-    $('shuffleBtn').classList.toggle('active', shuffle);
-    $('shuffleBtn').setAttribute('aria-pressed', String(shuffle));
-    const repeatText = repeat === 'off' ? '반복' : repeat === 'all' ? '전체 반복' : '한 곡 반복';
-    $('repeatBtn').textContent = repeatText;
-    $('repeatBtn').classList.toggle('active', repeat !== 'off');
-    $('repeatBtn').setAttribute('aria-label', repeatText);
+    const shuffleButton = $('shuffleBtn');
+    const repeatButton = $('repeatBtn');
+
+    shuffleButton.classList.toggle('active', shuffle);
+    shuffleButton.setAttribute('aria-pressed', String(shuffle));
+    shuffleButton.setAttribute('aria-label', shuffle ? '셔플 켜짐' : '셔플');
+
+    repeatButton.classList.toggle('active', repeat !== 'off');
+    repeatButton.classList.toggle('repeat-one', repeat === 'one');
+
+    let repeatLabel = '반복';
+    if (repeat === 'all') repeatLabel = '전체 반복';
+    if (repeat === 'one') repeatLabel = '한 곡 반복';
+    repeatButton.setAttribute('aria-label', repeatLabel);
   }
 
   function renderNow() {
