@@ -297,6 +297,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function syncArtwork(url, hasArtwork) {
     const source = hasArtwork ? url : FALLBACK_ARTWORK;
+    const image = $('heroArtworkImage');
+    if (image) image.src = source;
     document.documentElement.style.setProperty(
       '--cover-image',
       'url("' + source.replace(/"/g, '%22') + '")'

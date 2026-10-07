@@ -130,62 +130,76 @@ main { padding: 0; }
   pointer-events: none;
 }
 
-.hero-art {
-  top: 0;
-  height: 68dvh;
-  transform: translateX(-50%);
+/* Back layer: the same cover is enlarged and blurred only to carry its color
+   through the whole player. Cropping here is intentional because detail is not
+   meant to be readable in this layer. */
+.hero-blur {
+  inset: -8dvh auto -10dvh 50%;
+  width: 118vw;
+  height: 118dvh;
+  transform: translateX(-50%) scale(1.08);
   background-image: var(--cover-image);
   background-size: cover;
   background-position: center 34%;
   background-repeat: no-repeat;
+  filter: blur(58px) saturate(1.30) brightness(.72);
+  opacity: .98;
 }
 
-.hero-blur {
-  top: 34dvh;
-  height: 58dvh;
-  transform: translateX(-50%) scale(1.16);
-  background-image: var(--cover-image);
-  background-size: cover;
-  background-position: center 62%;
-  background-repeat: no-repeat;
-  filter: blur(52px) saturate(1.18) brightness(.58);
-  opacity: .98;
+/* Front layer: preserve the real artwork exactly. It is never cropped or
+   stretched; width follows the screen and height follows the file's ratio. */
+.hero-art {
+  top: 0;
+  z-index: 2;
+  transform: translateX(-50%);
+  overflow: hidden;
   -webkit-mask-image: linear-gradient(
     to bottom,
-    transparent 0%,
-    rgba(0,0,0,.18) 8%,
-    rgba(0,0,0,.82) 30%,
-    #000 58%,
-    #000 100%
+    #000 0%,
+    #000 68%,
+    rgba(0,0,0,.94) 76%,
+    rgba(0,0,0,.58) 89%,
+    transparent 100%
   );
   mask-image: linear-gradient(
     to bottom,
-    transparent 0%,
-    rgba(0,0,0,.18) 8%,
-    rgba(0,0,0,.82) 30%,
-    #000 58%,
-    #000 100%
+    #000 0%,
+    #000 68%,
+    rgba(0,0,0,.94) 76%,
+    rgba(0,0,0,.58) 89%,
+    transparent 100%
   );
 }
 
+.hero-art img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Only darken strongly near the controls. Album colors remain visible behind
+   the title, scrubber and transport controls. */
 .hero-shade {
   inset: 0 auto auto 50%;
+  z-index: 3;
   height: 100dvh;
   transform: translateX(-50%);
   background:
     linear-gradient(
       to bottom,
-      rgba(0,0,0,.05) 0%,
-      rgba(0,0,0,.08) 30%,
-      rgba(6,5,8,.22) 43%,
-      rgba(8,7,10,.58) 59%,
-      rgba(9,8,11,.88) 76%,
-      #09080b 94%
+      rgba(0,0,0,.02) 0%,
+      rgba(0,0,0,.02) 38%,
+      rgba(5,4,7,.08) 50%,
+      rgba(7,6,9,.20) 62%,
+      rgba(8,7,10,.40) 74%,
+      rgba(9,8,11,.62) 88%,
+      rgba(9,8,11,.78) 100%
     );
 }
 
 body:not(.has-artwork) .hero-art {
-  filter: saturate(.8) brightness(.55);
+  opacity: 0;
 }
 
 .now-content {
@@ -196,7 +210,7 @@ body:not(.has-artwork) .hero-art {
   flex-direction: column;
   justify-content: flex-end;
   padding:
-    calc(54dvh + 16px)
+    calc(57dvh + 8px)
     max(24px, env(safe-area-inset-right))
     calc(24px + env(safe-area-inset-bottom))
     max(24px, env(safe-area-inset-left));
