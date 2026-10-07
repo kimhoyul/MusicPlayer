@@ -306,15 +306,43 @@ document.addEventListener('DOMContentLoaded', () => {
       ratio = image.naturalHeight / image.naturalWidth;
     }
 
+    const isLandscape = ratio < 0.82;
+    document.body.classList.toggle('landscape-art', isLandscape);
+
     let artHeight = viewportWidth * ratio;
-    artHeight = Math.max(180, Math.min(artHeight, viewportHeight * 0.72));
+    artHeight = Math.max(170, Math.min(artHeight, viewportHeight * 0.72));
 
-    const blurStart = Math.max(120, artHeight * 0.60);
-    const contentStart = Math.max(
-      viewportHeight * 0.48,
-      Math.min(viewportHeight * 0.64, artHeight * 0.88 + 54)
-    );
+    let artTop = 0;
+    let contentStart;
 
+    if (isLandscape) {
+      // Center a wide cover vertically inside the upper visual zone instead of
+      // pinning it to the status bar. The blurred copy remains behind it above
+      // and below, so the artwork keeps its full composition.
+      const visualZoneHeight = viewportHeight * 0.62;
+      artTop = Math.max(
+        viewportHeight * 0.12,
+        (visualZoneHeight - artHeight) * 0.5
+      );
+
+      contentStart = Math.max(
+        viewportHeight * 0.52,
+        Math.min(
+          viewportHeight * 0.66,
+          artTop + artHeight * 0.86 + 42
+        )
+      );
+    } else {
+      artTop = 0;
+      contentStart = Math.max(
+        viewportHeight * 0.48,
+        Math.min(viewportHeight * 0.64, artHeight * 0.88 + 54)
+      );
+    }
+
+    const blurStart = Math.max(0, artTop + artHeight * 0.54);
+
+    root.style.setProperty('--art-top', Math.round(artTop) + 'px');
     root.style.setProperty('--art-height', Math.round(artHeight) + 'px');
     root.style.setProperty('--blur-start', Math.round(blurStart) + 'px');
     root.style.setProperty('--content-start', Math.round(contentStart) + 'px');

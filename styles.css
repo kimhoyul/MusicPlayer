@@ -9,6 +9,7 @@
   --accent: #d8b8ff;
   --accent-text: #1b1222;
   --cover-image: url("./hoyul-music-icon-512-v2.png");
+  --art-top: 0px;
   --art-height: 100vw;
   --blur-start: 62vw;
   --content-start: 54dvh;
@@ -136,39 +137,23 @@ main { padding: 0; }
 /* Soft full-screen color field. Cropping is allowed only in this background
    layer; the actual artwork on top is always preserved. */
 .hero-blur {
-  top: var(--blur-start);
+  top: -8dvh;
   bottom: -10dvh;
-  width: 112vw;
-  transform: translateX(-50%) scale(1.06);
-  transform-origin: center top;
+  width: 116vw;
+  transform: translateX(-50%) scale(1.08);
+  transform-origin: center center;
   background-image: var(--cover-image);
   background-size: cover;
-  background-position: center top;
+  background-position: center center;
   background-repeat: no-repeat;
-  filter: blur(34px) saturate(1.18) brightness(.74);
+  filter: blur(36px) saturate(1.20) brightness(.70);
   opacity: .98;
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    transparent 0%,
-    rgba(0,0,0,.18) 7%,
-    rgba(0,0,0,.78) 24%,
-    #000 43%,
-    #000 100%
-  );
-  mask-image: linear-gradient(
-    to bottom,
-    transparent 0%,
-    rgba(0,0,0,.18) 7%,
-    rgba(0,0,0,.78) 24%,
-    #000 43%,
-    #000 100%
-  );
 }
 
 /* Actual embedded artwork: width fills the device, height follows its native
    aspect ratio. No cover crop and no forced square. */
 .hero-art {
-  top: 0;
+  top: var(--art-top);
   z-index: 2;
   height: var(--art-height);
   transform: translateX(-50%);
@@ -582,4 +567,42 @@ dialog::backdrop {
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; }
+}
+
+body.landscape-art .hero-art {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0,0,0,.72) 7%,
+    #000 17%,
+    #000 82%,
+    rgba(0,0,0,.72) 93%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0,0,0,.72) 7%,
+    #000 17%,
+    #000 82%,
+    rgba(0,0,0,.72) 93%,
+    transparent 100%
+  );
+}
+
+body.landscape-art .hero-art img {
+  object-position: center center;
+}
+
+body.landscape-art .hero-shade {
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(0,0,0,.03) 0%,
+      rgba(0,0,0,.03) 28%,
+      rgba(4,3,6,.07) 50%,
+      rgba(6,5,8,.16) 68%,
+      rgba(8,7,10,.34) 82%,
+      rgba(9,8,11,.58) 100%
+    );
 }
