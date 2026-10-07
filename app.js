@@ -17,6 +17,9 @@ document.addEventListener('DOMContentLoaded', () => {
   let activePlaylistId = null;
   let playbackPlaylistId = null;
   let editingPlaylistId = null;
+  let actionTrackId = null;
+  let coverTrackId = null;
+  let missingCoverQueue = [];
   let currentId = null;
   let objectUrl = null;
   let shuffle = false;
@@ -327,20 +330,14 @@ document.addEventListener('DOMContentLoaded', () => {
         void selectTrack(track.id, true);
       });
 
-      const del = document.createElement('button');
-      del.type = 'button';
-      del.className = 'track-delete';
-      del.textContent = playlist ? '제거' : '삭제';
-      del.setAttribute(
-        'aria-label',
-        (track.title || track.name) + (playlist ? ' 플레이리스트에서 제거' : ' 삭제')
-      );
-      del.addEventListener('click', () => {
-        if (playlist) void removeTrackFromPlaylist(playlist.id, track.id);
-        else void deleteTrack(track.id);
-      });
+      const more = document.createElement('button');
+      more.type = 'button';
+      more.className = 'track-more';
+      more.textContent = '•••';
+      more.setAttribute('aria-label', (track.title || track.name) + ' 메뉴');
+      more.addEventListener('click', () => openTrackActions(track.id));
 
-      row.append(main, del);
+      row.append(main, more);
       fragment.appendChild(row);
     });
 
@@ -557,39 +554,46 @@ document.addEventListener('DOMContentLoaded', () => {
     return null;
   }
 
-  async function loadTrackArtwork(track, sourceBlob) {
-    if (!track) {
-      setArtworkBlob(null);
-      return;
-    }
+  function effectiveArtworkBlob(track) {
+    if (!track || track.artworkRemoved) return null;
+    if (track.customArtworkBlob instanceof Blob) return track.customArtworkBlob;
+    if (track.artworkBlob instanceof Blob) return track.artworkBlob;
+    return null;
+  }
 
-    if (track.artworkBlob instanceof Blob) {
-      if (currentId === track.id) setArtworkBlob(track.artworkBlob);
-      return;
-    }
+  async function persistTrack(track) {
+    await idbRequest(TRACKS, 'readwrite', store => store.put(track));
+  }
 
-    if (!sourceBlob || !/\.mp3$/i.test(track.name || '')) {
-      if (currentId === track.id) setArtworkBlob(null);
-      return;
-    }
-
+  async function ensureOriginalArtwork(track, sourceBlob) {
+    if (!track) return null;
+    if (track.artworkBlob instanceof Blob) return track.artworkBlob;
+    if (!sourceBlob || !/\.mp3$/i.test(track.name || '')) return null;
     try {
       const artwork = await extractMp3Artwork(sourceBlob);
-      if (currentId !== track.id) return;
-      if (!artwork) {
-        setArtworkBlob(null);
-        return;
+      if (artwork) {
+        track.artworkBlob = artwork;
+        await persistTrack(track);
       }
+      return artwork;
+    } catch { return null; }
+  }
 
-      track.artworkBlob = artwork;
-      try {
-        await idbRequest(TRACKS, 'readwrite', store => store.put(track));
-      } catch {}
-      setArtworkBlob(artwork);
-      applyMediaSession(track, artworkObjectUrl);
-    } catch {
-      if (currentId === track.id) setArtworkBlob(null);
+  async function loadTrackArtwork(track, sourceBlob) {
+    if (!track) { setArtworkBlob(null); return; }
+    if (track.artworkRemoved) { if (currentId === track.id) setArtworkBlob(null); return; }
+    if (track.customArtworkBlob instanceof Blob) {
+      if (currentId === track.id) {
+        setArtworkBlob(track.customArtworkBlob);
+        applyMediaSession(track, artworkObjectUrl);
+      }
+      return;
     }
+    let artwork = track.artworkBlob instanceof Blob ? track.artworkBlob : null;
+    if (!artwork) artwork = await ensureOriginalArtwork(track, sourceBlob);
+    if (currentId !== track.id) return;
+    setArtworkBlob(artwork);
+    applyMediaSession(track, artworkObjectUrl || null);
   }
 
   async function updateTrackDuration(id, duration) {
@@ -673,8 +677,7 @@ document.addEventListener('DOMContentLoaded', () => {
     objectUrl = nextUrl;
     audio.src = objectUrl;
     audio.load();
-    if (track.artworkBlob instanceof Blob) setArtworkBlob(track.artworkBlob);
-    else setArtworkBlob(null);
+    setArtworkBlob(effectiveArtworkBlob(track));
     applyMediaSession(track, artworkObjectUrl || null);
     void loadTrackArtwork(track, sourceBlob);
     renderAll();
@@ -807,6 +810,131 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const prev = nextIndex(-1);
     if (prev >= 0) await selectTrack(queue[prev].id, true);
+  }
+
+  function openTrackActions(id) {
+    const track = tracks.find(item => item.id === id);
+    if (!track) return;
+    actionTrackId = id;
+    $('trackActionTitle').textContent = track.title || track.name;
+    $('removeOrDeleteTrackBtn').textContent = activePlaylistId ? '플레이리스트에서 제거' : '음악 파일 삭제';
+    $('trackActionDialog').showModal();
+  }
+
+  function openCoverEditor(id, autoSearch = false) {
+    const track = tracks.find(item => item.id === id);
+    if (!track) return;
+    coverTrackId = id;
+    $('coverDialogTitle').textContent = autoSearch ? '커버가 없는 음악' : '커버 변경';
+    $('coverTrackName').textContent = (track.title || track.name) + (track.artist ? ' · ' + track.artist : '');
+    $('coverSearchQuery').value = [track.artist, track.title || track.name.replace(/\.[^.]+$/, '')].filter(Boolean).join(' ');
+    $('coverSearchArea').hidden = !autoSearch;
+    $('coverSearchResults').replaceChildren();
+    $('coverSearchStatus').textContent = autoSearch ? '검색 결과에서 커버를 선택하거나 닫아서 건너뛸 수 있습니다.' : '';
+    $('coverDialog').showModal();
+    if (autoSearch) void searchCoverCandidates();
+  }
+
+  async function saveCustomArtwork(id, blob) {
+    const track = tracks.find(item => item.id === id);
+    if (!track || !(blob instanceof Blob)) return;
+    track.customArtworkBlob = blob;
+    track.artworkRemoved = false;
+    await persistTrack(track);
+    if (currentId === id) { setArtworkBlob(blob); applyMediaSession(track, artworkObjectUrl); }
+    renderTracks();
+  }
+
+  async function useCoverFile(file) {
+    if (!file || !file.type.startsWith('image/')) { toast('이미지 파일을 선택해 주세요.'); return; }
+    if (file.size > 15 * 1024 * 1024) { toast('15MB 이하 이미지를 선택해 주세요.'); return; }
+    await saveCustomArtwork(coverTrackId, file);
+    $('coverDialog').close();
+    toast('커버를 변경했습니다.');
+    continueMissingCoverQueue();
+  }
+
+  async function searchCoverCandidates() {
+    const query = $('coverSearchQuery').value.trim();
+    if (!query) return;
+    $('coverSearchStatus').textContent = '검색 중…';
+    $('coverSearchResults').replaceChildren();
+    try {
+      const response = await fetch('https://itunes.apple.com/search?media=music&entity=song&limit=12&term=' + encodeURIComponent(query));
+      if (!response.ok) throw new Error();
+      const data = await response.json();
+      const results = Array.isArray(data.results) ? data.results : [];
+      $('coverSearchStatus').textContent = results.length ? results.length + '개 결과' : '검색 결과가 없습니다.';
+      const fragment = document.createDocumentFragment();
+      for (const result of results) {
+        if (!result.artworkUrl100) continue;
+        const url = result.artworkUrl100.replace(/100x100bb/, '600x600bb');
+        const button = document.createElement('button');
+        button.type = 'button'; button.className = 'cover-result';
+        const image = document.createElement('img'); image.src = url; image.alt = '';
+        const title = document.createElement('span'); title.className = 'cover-result-title'; title.textContent = result.trackName || result.collectionName || '커버';
+        const artist = document.createElement('span'); artist.className = 'cover-result-artist'; artist.textContent = result.artistName || '';
+        button.append(image, title, artist);
+        button.addEventListener('click', async () => {
+          try {
+            $('coverSearchStatus').textContent = '저장 중…';
+            const r = await fetch(url);
+            if (!r.ok) throw new Error();
+            await saveCustomArtwork(coverTrackId, await r.blob());
+            $('coverDialog').close(); toast('커버를 저장했습니다.'); continueMissingCoverQueue();
+          } catch { $('coverSearchStatus').textContent = '이 커버를 저장하지 못했습니다.'; }
+        });
+        fragment.appendChild(button);
+      }
+      $('coverSearchResults').replaceChildren(fragment);
+    } catch { $('coverSearchStatus').textContent = '인터넷 연결을 확인한 뒤 다시 검색해 주세요.'; }
+  }
+
+  async function restoreOriginalCover() {
+    const track = tracks.find(item => item.id === coverTrackId);
+    if (!track) return;
+    let original = track.artworkBlob instanceof Blob ? track.artworkBlob : null;
+    if (!original) {
+      const record = await getAudioRecord(track.id);
+      original = await ensureOriginalArtwork(track, record?.blob);
+    }
+    if (!original) { toast('이 파일에는 원본 커버가 없습니다.'); return; }
+    delete track.customArtworkBlob; track.artworkRemoved = false; await persistTrack(track);
+    if (currentId === track.id) { setArtworkBlob(original); applyMediaSession(track, artworkObjectUrl); }
+    $('coverDialog').close(); renderTracks(); toast('원본 커버로 복원했습니다.');
+  }
+
+  async function removeTrackCover() {
+    const track = tracks.find(item => item.id === coverTrackId);
+    if (!track) return;
+    delete track.customArtworkBlob; track.artworkRemoved = true; await persistTrack(track);
+    if (currentId === track.id) { setArtworkBlob(null); applyMediaSession(track, null); }
+    $('coverDialog').close(); renderTracks(); toast('커버를 제거했습니다.');
+  }
+
+  function renderPlaylistTargets() {
+    const box = $('addToPlaylistChoices'); const fragment = document.createDocumentFragment();
+    if (!playlists.length) {
+      const p = document.createElement('p'); p.className = 'muted'; p.textContent = '먼저 플레이리스트를 만들어 주세요.'; fragment.appendChild(p);
+    }
+    for (const playlist of playlists) {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'playlist-target';
+      const included = (playlist.trackIds || []).includes(actionTrackId);
+      b.textContent = playlist.name + (included ? ' · 추가됨' : '');
+      b.disabled = included;
+      b.addEventListener('click', async () => {
+        playlist.trackIds = [...(playlist.trackIds || []), actionTrackId]; playlist.updatedAt = Date.now();
+        await idbRequest(PLAYLISTS, 'readwrite', store => store.put(playlist)); playlists = await allPlaylists();
+        $('addToPlaylistDialog').close(); toast('플레이리스트에 추가했습니다.'); renderLibrary();
+      });
+      fragment.appendChild(b);
+    }
+    box.replaceChildren(fragment);
+  }
+
+  function continueMissingCoverQueue() {
+    const next = missingCoverQueue.shift();
+    if (next) setTimeout(() => openCoverEditor(next, true), 180);
   }
 
   function selectedTrackIdsFromDialog() {
